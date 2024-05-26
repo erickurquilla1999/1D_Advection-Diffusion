@@ -13,6 +13,9 @@ def lagrange_basis(nodes, i, x):
     Returns:
         float: Value of the Lagrange basis function at the point x.
     """
+    if x < nodes[0] or x > nodes[len(nodes)-1]:
+        return 0
+        
     n = len(nodes)
     basis = 1.0
     for j in range(n):
@@ -32,6 +35,9 @@ def lagrange_basis_derivative(nodes, i, x):
     Returns:
         float: The derivative of the Lagrange basis function at the given node and value of x.
     """
+    if x < nodes[0] or x > nodes[len(nodes)-1]:
+        return 0
+
     basis_derivative = 0
     for j in range(len(nodes)):
         if j != i:
