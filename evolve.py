@@ -2,6 +2,20 @@ import numpy as np
 import inputs
 import basis
 
+def compute_mass_matrix_1_inverse(elmnt_numb,element_lgth, gauss_weights, basis_values_at_gauss_quad):
+
+    # number of basis or nodes in each element
+    number_of_basis = len(basis_values_at_gauss_quad[0][0])
+
+    # compute mass matrix 1
+    M1 = [ [ [ 0.5 * element_lgth[n] * np.sum( basis_values_at_gauss_quad[n][:,i] * gauss_weights[n] * basis_values_at_gauss_quad[n][:,j] ) for j in range(number_of_basis) ] for i in range(number_of_basis) ] for n in elmnt_numb]
+
+    # compute inverse of mass matrix 2
+    M1_inverse = [ np.linalg.inv(M1[n]) for n in elmnt_numb]
+    
+    return M1_inverse
+
+
 def CG_solver(e_numb, e_lgth, g_weights, bas_vals_at_gauss_quadrature, bas_vals_x_der_at_gauss_quadrature):
     
     # evaluating the derivative in x of basis function evaluated in the gauss quadrature points
@@ -40,14 +54,6 @@ def CG_solver(e_numb, e_lgth, g_weights, bas_vals_at_gauss_quadrature, bas_vals_
     return x
 
 def DG_solver_advection(e_numb, e_lgth, g_weights, bas_vals_at_gauss_quadrature, bas_vals_x_der_at_gauss_quadrature, nods_coords_phys_space):
-    
-    # evaluating the derivative in x of basis function evaluated in the gauss quadrature points
-    # x_derivative_of_basis_func_at_gauss_quad_in_phys_space = [ [phi'_1(gauss_coords_1), phi'_2(gauss_coords_1) , ... , phi'_p(gauss_coords_1)], 
-    #                                                               [phi'_1(gauss_coords_2), phi'_2(gauss_coords_2) , ... , phi'_p(gauss_coords_2)], ... , ]
-
-    # evaluating the basis function in the gauss quadrature points
-    # basis_func_values_at_gauss_quad_in_phys_space = [ [phi_1(gauss_coords_1), phi_2(gauss_coords_1) , ... , phi_p(gauss_coords_1)] , 
-    #                                                   [phi_1(gauss_coords_2), phi_2(gauss_coords_2) , ... , phi_p(gauss_coords_2)] , ... , ]
 
     A_matrix = np.zeros( ( inputs.N_elements * ( inputs.p_basis_order + 1 ) , inputs.N_elements * ( inputs.p_basis_order + 1 ) ) )
     b_vector = np.zeros(   inputs.N_elements * ( inputs.p_basis_order + 1 )                                                      )
