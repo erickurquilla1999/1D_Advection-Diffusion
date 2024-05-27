@@ -11,7 +11,7 @@ n_gauss_poins = 5
 
 # Governing equation parameters
 a = 1
-Pe = 100
+Pe = 1
 v = a * x_final / Pe
 
 # Boundary conditions
