@@ -189,20 +189,18 @@ def DG_solver_advection(e_numb, e_lgth, g_weights, bas_vals_at_gauss_quadrature,
     for k in e_numb[1:-1]:
         for n in range(inputs.p_basis_order + 1):
             for m in range(inputs.p_basis_order + 1):
-                term1_leftterm_term3diff          [ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) * k + m ] += ( -1 * inputs.v / 2 ) * basis.lagrange_basis( nods_coords_phys_space[k], n, nods_coords_phys_space[k][-1] ) * basis.lagrange_basis_derivative( nods_coords_phys_space[k], m, nods_coords_phys_space[k][-1] )
-                term1_rightterm_term3diff         [ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) * k + m ] += ( +1 * inputs.v / 2 ) * basis.lagrange_basis( nods_coords_phys_space[k], n, nods_coords_phys_space[k][ 0] ) * basis.lagrange_basis_derivative( nods_coords_phys_space[k], m, nods_coords_phys_space[k][ 0] )
+                term1_leftterm_term3diff          [ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) *   k       + m ] += ( -1 * inputs.v / 2 ) * basis.lagrange_basis( nods_coords_phys_space[k], n, nods_coords_phys_space[k][-1] ) * basis.lagrange_basis_derivative( nods_coords_phys_space[k  ], m, nods_coords_phys_space[k][-1] )
+                term1_rightterm_term3diff         [ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) * ( k - 1 ) + m ] += ( +1 * inputs.v / 2 ) * basis.lagrange_basis( nods_coords_phys_space[k], n, nods_coords_phys_space[k][ 0] ) * basis.lagrange_basis_derivative( nods_coords_phys_space[k-1], m, nods_coords_phys_space[k][ 0] )
 
     # element at the right boundary
     k = e_numb[-1]
     for n in range(inputs.p_basis_order + 1):
         for m in range(inputs.p_basis_order + 1):
-            term1_leftterm_term3diff_rightboundary[ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) * k + m ] += ( -1 * inputs.v / 2 ) * basis.lagrange_basis( nods_coords_phys_space[k], n, nods_coords_phys_space[k][-1] ) * basis.lagrange_basis_derivative( nods_coords_phys_space[k], m, nods_coords_phys_space[k][-1] )
-            term1_rightterm_term3diff             [ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) * k + m ] += ( +1 * inputs.v / 2 ) * basis.lagrange_basis( nods_coords_phys_space[k], n, nods_coords_phys_space[k][ 0] ) * basis.lagrange_basis_derivative( nods_coords_phys_space[k], m, nods_coords_phys_space[k][ 0] )
+            term1_leftterm_term3diff_rightboundary[ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) *   k       + m ] += ( -1 * inputs.v / 2 ) * basis.lagrange_basis( nods_coords_phys_space[k], n, nods_coords_phys_space[k][-1] ) * basis.lagrange_basis_derivative( nods_coords_phys_space[k  ], m, nods_coords_phys_space[k][-1] )
+            term1_rightterm_term3diff             [ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) * ( k - 1 ) + m ] += ( +1 * inputs.v / 2 ) * basis.lagrange_basis( nods_coords_phys_space[k], n, nods_coords_phys_space[k][ 0] ) * basis.lagrange_basis_derivative( nods_coords_phys_space[k-1], m, nods_coords_phys_space[k][ 0] )
 
     term3diff_vector += term1_rightterm_term3diff_leftboundary @ state_leftboundary + term1_leftterm_term3diff_rightboundary @ state_rightboundary
     term3diff_matrix += term1_leftterm_term3diff + term1_rightterm_term3diff
-
-
 
     #
     # term 2 of term 3 diffusion
@@ -225,14 +223,14 @@ def DG_solver_advection(e_numb, e_lgth, g_weights, bas_vals_at_gauss_quadrature,
         for n in range(inputs.p_basis_order + 1):
             for m in range(inputs.p_basis_order + 1):
                 term2_leftterm_term3diff          [ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) * ( k + 1 ) + m ] += ( -1 * inputs.v / 2 ) * basis.lagrange_basis( nods_coords_phys_space[k], n, nods_coords_phys_space[k][-1] ) * basis.lagrange_basis_derivative( nods_coords_phys_space[k+1], m, nods_coords_phys_space[k][-1] )
-                term2_rightterm_term3diff         [ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) * ( k - 1 ) + m ] += ( +1 * inputs.v / 2 ) * basis.lagrange_basis( nods_coords_phys_space[k], n, nods_coords_phys_space[k][ 0] ) * basis.lagrange_basis_derivative( nods_coords_phys_space[k-1], m, nods_coords_phys_space[k][ 0] )
+                term2_rightterm_term3diff         [ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) *   k       + m ] += ( +1 * inputs.v / 2 ) * basis.lagrange_basis( nods_coords_phys_space[k], n, nods_coords_phys_space[k][ 0] ) * basis.lagrange_basis_derivative( nods_coords_phys_space[k  ], m, nods_coords_phys_space[k][ 0] )
 
     # element at the right boundary
     k = e_numb[-1]
     for n in range(inputs.p_basis_order + 1):
         for m in range(inputs.p_basis_order + 1):
             term2_leftterm_term3diff_rightboundary[ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) *   k       + m ] += ( -1 * inputs.v / 2 ) * basis.lagrange_basis( nods_coords_phys_space[k], n, nods_coords_phys_space[k][-1] ) * basis.lagrange_basis_derivative( nods_coords_phys_space[k  ], m, nods_coords_phys_space[k][-1] )
-            term2_rightterm_term3diff             [ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) * ( k - 1 ) + m ] += ( +1 * inputs.v / 2 ) * basis.lagrange_basis( nods_coords_phys_space[k], n, nods_coords_phys_space[k][ 0] ) * basis.lagrange_basis_derivative( nods_coords_phys_space[k-1], m, nods_coords_phys_space[k][ 0] )
+            term2_rightterm_term3diff             [ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) *   k       + m ] += ( +1 * inputs.v / 2 ) * basis.lagrange_basis( nods_coords_phys_space[k], n, nods_coords_phys_space[k][ 0] ) * basis.lagrange_basis_derivative( nods_coords_phys_space[k  ], m, nods_coords_phys_space[k][ 0] )
 
     term3diff_vector += term2_rightterm_term3diff_leftboundary @ state_leftboundary + term2_leftterm_term3diff_rightboundary @ state_rightboundary
     term3diff_matrix += term2_leftterm_term3diff + term2_rightterm_term3diff
