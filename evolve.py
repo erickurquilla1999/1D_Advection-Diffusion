@@ -344,10 +344,7 @@ def DG_solver_advection(e_numb, e_lgth, g_weights, bas_vals_at_gauss_quadrature,
     
     delta_plus  = mass_matrix_inverse @ delta_plus
     delta_minus = mass_matrix_inverse @ delta_minus
-
-    print(f'delta_plus  = \n{delta_plus}')
-    print(f'delta_minus = \n{delta_minus}')
-
+    
     term3_term3diff = np.zeros( ( inputs.N_elements * ( inputs.p_basis_order + 1 ) , inputs.N_elements * ( inputs.p_basis_order + 1 ) ) )
     term3_term3diff_plus = np.zeros( ( inputs.N_elements * ( inputs.p_basis_order + 1 ) , inputs.N_elements * ( inputs.p_basis_order + 1 ) ) )
     term3_term3diff_minu = np.zeros( ( inputs.N_elements * ( inputs.p_basis_order + 1 ) , inputs.N_elements * ( inputs.p_basis_order + 1 ) ) )
