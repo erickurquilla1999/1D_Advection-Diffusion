@@ -18,4 +18,4 @@ cg_solution = evolve.CG_solver(element_number, element_lengths, gauss_weights, b
 mass_matrix_1_inverse = evolve.compute_mass_matrix_1_inverse(element_number, element_lengths, gauss_weights, basis_values_at_gauss_quad)
 
 # solving using discontinous galerkin method
-dg_sol = evolve.DG_solver_advection(element_number, element_lengths, gauss_weights, basis_values_at_gauss_quad, basis_values_x_derivative_at_gauss_quad, nodes_coordinates_phys_space)
+dg_solution = evolve.DG_solver_advection(element_number, element_lengths, gauss_weights, basis_values_at_gauss_quad, basis_values_x_derivative_at_gauss_quad, nodes_coordinates_phys_space, mass_matrix_1_inverse)

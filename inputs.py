@@ -3,7 +3,7 @@ x_initial = 0 # (m) initial domain coordinate
 x_final = 1 # (m) final domain coordinate
 
 # DG method
-N_elements = 4 # number of elements
+N_elements = 16 # number of elements
 p_basis_order = 2 # lagrange basis order
 
 # Gauss cuadrature

@@ -53,7 +53,7 @@ def CG_solver(e_numb, e_lgth, g_weights, bas_vals_at_gauss_quadrature, bas_vals_
 
     return x
 
-def DG_solver_advection(e_numb, e_lgth, g_weights, bas_vals_at_gauss_quadrature, bas_vals_x_der_at_gauss_quadrature, nods_coords_phys_space):
+def DG_solver_advection(e_numb, e_lgth, g_weights, bas_vals_at_gauss_quadrature, bas_vals_x_der_at_gauss_quadrature, nods_coords_phys_space, mass_matr_inv):
 
     A_matrix = np.zeros( ( inputs.N_elements * ( inputs.p_basis_order + 1 ) , inputs.N_elements * ( inputs.p_basis_order + 1 ) ) )
     b_vector = np.zeros(   inputs.N_elements * ( inputs.p_basis_order + 1 )                                                      )
@@ -241,25 +241,166 @@ def DG_solver_advection(e_numb, e_lgth, g_weights, bas_vals_at_gauss_quadrature,
     term3diff_vector += term2_rightterm_term3diff_leftboundary @ state_leftboundary + term2_leftterm_term3diff_rightboundary @ state_rightboundary
     term3diff_matrix += term2_leftterm_term3diff + term2_rightterm_term3diff
 
+    #
+    # term 3 of term 3 diffusion
+    #
+
+    mass_matrix_inverse = np.zeros( ( inputs.N_elements * ( inputs.p_basis_order + 1 ) , inputs.N_elements * ( inputs.p_basis_order + 1 ) ) )
+    for k in e_numb:
+        for n in range(inputs.p_basis_order + 1):
+            for m in range(inputs.p_basis_order + 1):
+                mass_matrix_inverse[ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) * k + m ] = mass_matr_inv[k][n][m]
+
+    '''
+    delta_plus = np.zeros( ( inputs.N_elements * ( inputs.p_basis_order + 1 ) , inputs.N_elements * ( inputs.p_basis_order + 1 ) ) )
+    Phi_1_plus = np.zeros( ( inputs.N_elements * ( inputs.p_basis_order + 1 ) , inputs.N_elements * ( inputs.p_basis_order + 1 ) ) )
+    Phi_2_plus = np.zeros( ( inputs.N_elements * ( inputs.p_basis_order + 1 ) , inputs.N_elements * ( inputs.p_basis_order + 1 ) ) )
+    Phi_3_plus = np.zeros( ( inputs.N_elements * ( inputs.p_basis_order + 1 ) , inputs.N_elements * ( inputs.p_basis_order + 1 ) ) )
+    Phi_4_plus = np.zeros( ( inputs.N_elements * ( inputs.p_basis_order + 1 ) , inputs.N_elements * ( inputs.p_basis_order + 1 ) ) )
+    
+    for k in e_numb[1:-1]:
+        for n in range(inputs.p_basis_order + 1):
+            for m in range(inputs.p_basis_order + 1):
+                Phi_1_plus[ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) *   k       + m ] += basis.lagrange_basis( nods_coords_phys_space[k], n, nods_coords_phys_space[k][-1] ) * basis.lagrange_basis( nods_coords_phys_space[k  ], m, nods_coords_phys_space[k][-1] )
+                Phi_2_plus[ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) * ( k + 1 ) + m ] += basis.lagrange_basis( nods_coords_phys_space[k], n, nods_coords_phys_space[k][-1] ) * basis.lagrange_basis( nods_coords_phys_space[k+1], m, nods_coords_phys_space[k][-1] )
+                Phi_3_plus[ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) *   k       + m ] += basis.lagrange_basis( nods_coords_phys_space[k], n, nods_coords_phys_space[k][-1] ) * basis.lagrange_basis( nods_coords_phys_space[k  ], m, nods_coords_phys_space[k][-1] )
+                Phi_4_plus[ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) * ( k - 1 ) + m ] += basis.lagrange_basis( nods_coords_phys_space[k], n, nods_coords_phys_space[k][ 0] ) * basis.lagrange_basis( nods_coords_phys_space[k-1], m, nods_coords_phys_space[k][ 0] )
+
+    print(f'Phi_1_plus = \n{Phi_1_plus}')
+    print(f'Phi_2_plus = \n{Phi_2_plus}')
+    print(f'Phi_3_plus = \n{Phi_3_plus}')
+    print(f'Phi_4_plus = \n{Phi_4_plus}')
+
+    gamma_1_plus = np.zeros( ( inputs.N_elements * ( inputs.p_basis_order + 1 ) , inputs.N_elements * ( inputs.p_basis_order + 1 ) ) )
+    gamma_2_plus = np.zeros( ( inputs.N_elements * ( inputs.p_basis_order + 1 ) , inputs.N_elements * ( inputs.p_basis_order + 1 ) ) )
+
+    for k in e_numb[1:-1]:
+        for n in range(inputs.p_basis_order + 1):
+            for m in range(inputs.p_basis_order + 1):
+                for q in range(inputs.p_basis_order + 1):
+                    gamma_1_plus[ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) *   k       + m ] += mass_matrix_inverse[ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) * k + q ] * Phi_1_plus[ ( inputs.p_basis_order + 1 ) * k + q ][ ( inputs.p_basis_order + 1 ) *   k       + m ]
+                    gamma_2_plus[ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) * ( k + 1 ) + m ] += mass_matrix_inverse[ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) * k + q ] * Phi_2_plus[ ( inputs.p_basis_order + 1 ) * k + q ][ ( inputs.p_basis_order + 1 ) * ( k + 1 ) + m ]
+
+    print(f'gamma_1_plus = \n{gamma_1_plus}')
+    print(f'gamma_2_plus = \n{gamma_2_plus}')
+    
+    delta_plus = 0.5 * gamma_1_plus - 0.5 * gamma_2_plus
+
+    print(f'delta_plus = \n{delta_plus}')
+    '''
 
 
 
 
 
+    term3diff_matrix = np.zeros( ( inputs.N_elements * ( inputs.p_basis_order + 1 ) , inputs.N_elements * ( inputs.p_basis_order + 1 ) ) )
+    term3diff_vector = np.zeros(   inputs.N_elements * ( inputs.p_basis_order + 1 ) )
 
+    # element at the left boundary
 
+    delta_plus    = np.zeros( ( inputs.N_elements * ( inputs.p_basis_order + 1 ) , inputs.N_elements * ( inputs.p_basis_order + 1 ) ) )
+    delta_minus   = np.zeros( ( inputs.N_elements * ( inputs.p_basis_order + 1 ) , inputs.N_elements * ( inputs.p_basis_order + 1 ) ) )
+    delta_minus_b = np.zeros( ( inputs.N_elements * ( inputs.p_basis_order + 1 ) , inputs.N_elements * ( inputs.p_basis_order + 1 ) ) )
 
-    print('\n\n\n\n')
-    # so far
-    A_matrix = uwf_matrix - advection_matrix_1 + diffusion_matrix_1 + term2diff_matrix + term3diff_matrix
-    print(f'A_matrix = \n{A_matrix}')
+    k = 0
+
+    for n in range(inputs.p_basis_order + 1):
+        for m in range(inputs.p_basis_order + 1):
+            delta_plus   [ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) *   k       + m ] += (   1 / 2 ) * basis.lagrange_basis( nods_coords_phys_space[k], n, nods_coords_phys_space[k][-1] ) * basis.lagrange_basis( nods_coords_phys_space[k  ], m, nods_coords_phys_space[k][-1] )
+            delta_plus   [ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) * ( k + 1 ) + m ] += ( - 1 / 2 ) * basis.lagrange_basis( nods_coords_phys_space[k], n, nods_coords_phys_space[k][-1] ) * basis.lagrange_basis( nods_coords_phys_space[k+1], m, nods_coords_phys_space[k][-1] )
+            delta_minus_b[ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) *   k       + m ] += ( + 1 / 2 ) * basis.lagrange_basis( nods_coords_phys_space[k], n, nods_coords_phys_space[k][ 0] ) * basis.lagrange_basis( nods_coords_phys_space[k  ], m, nods_coords_phys_space[k][ 0] )
+            delta_minus  [ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) *   k       + m ] += ( - 1 / 2 ) * basis.lagrange_basis( nods_coords_phys_space[k], n, nods_coords_phys_space[k][ 0] ) * basis.lagrange_basis( nods_coords_phys_space[k  ], m, nods_coords_phys_space[k][ 0] )
+
+    delta_plus    = mass_matrix_inverse @ delta_plus
+    delta_minus   = mass_matrix_inverse @ delta_minus
+    delta_minus_b = mass_matrix_inverse @ delta_minus_b
+
+    term3_term3diff_plus   = np.zeros( ( inputs.N_elements * ( inputs.p_basis_order + 1 ) , inputs.N_elements * ( inputs.p_basis_order + 1 ) ) )
+    term3_term3diff_plus_b = np.zeros( ( inputs.N_elements * ( inputs.p_basis_order + 1 ) , inputs.N_elements * ( inputs.p_basis_order + 1 ) ) )
+    term3_term3diff_minu   = np.zeros( ( inputs.N_elements * ( inputs.p_basis_order + 1 ) , inputs.N_elements * ( inputs.p_basis_order + 1 ) ) )
+
+    for n in range(inputs.p_basis_order + 1):
+        for m in range(inputs.p_basis_order + 1):
+            term3_term3diff_plus  [ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) *   k       + m ] += +inputs.v * basis.lagrange_basis( nods_coords_phys_space[k], n, nods_coords_phys_space[k][-1] ) * basis.lagrange_basis( nods_coords_phys_space[k  ], m, nods_coords_phys_space[k][-1] )
+            term3_term3diff_plus_b[ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) *   k       + m ] += -inputs.v * basis.lagrange_basis( nods_coords_phys_space[k], n, nods_coords_phys_space[k][ 0] ) * basis.lagrange_basis( nods_coords_phys_space[k  ], m, nods_coords_phys_space[k][ 0] )
+            term3_term3diff_minu  [ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) * ( k + 1 ) + m ] += +inputs.v * basis.lagrange_basis( nods_coords_phys_space[k], n, nods_coords_phys_space[k][-1] ) * basis.lagrange_basis( nods_coords_phys_space[k+1], m, nods_coords_phys_space[k][-1] )
+            term3_term3diff_minu  [ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) *   k       + m ] += -inputs.v * basis.lagrange_basis( nods_coords_phys_space[k], n, nods_coords_phys_space[k][ 0] ) * basis.lagrange_basis( nods_coords_phys_space[k  ], m, nods_coords_phys_space[k][ 0] )
+    
+    term3diff_matrix += term3_term3diff_plus @ delta_plus + term3_term3diff_minu @ delta_minus
+    term3diff_vector += term3_term3diff_plus_b @ delta_minus_b @ state_leftboundary
+
+    # interior elements
+
+    delta_plus  = np.zeros( ( inputs.N_elements * ( inputs.p_basis_order + 1 ) , inputs.N_elements * ( inputs.p_basis_order + 1 ) ) )
+    delta_minus = np.zeros( ( inputs.N_elements * ( inputs.p_basis_order + 1 ) , inputs.N_elements * ( inputs.p_basis_order + 1 ) ) )
+
+    for k in e_numb[1:-1]:
+        for n in range(inputs.p_basis_order + 1):
+            for m in range(inputs.p_basis_order + 1):
+                delta_plus [ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) *   k       + m ] += (   1 / 2 ) * basis.lagrange_basis( nods_coords_phys_space[k], n, nods_coords_phys_space[k][-1] ) * basis.lagrange_basis( nods_coords_phys_space[k  ], m, nods_coords_phys_space[k][-1] )
+                delta_plus [ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) * ( k + 1 ) + m ] += ( - 1 / 2 ) * basis.lagrange_basis( nods_coords_phys_space[k], n, nods_coords_phys_space[k][-1] ) * basis.lagrange_basis( nods_coords_phys_space[k+1], m, nods_coords_phys_space[k][-1] )
+                delta_minus[ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) * ( k - 1 ) + m ] += (   1 / 2 ) * basis.lagrange_basis( nods_coords_phys_space[k], n, nods_coords_phys_space[k][ 0] ) * basis.lagrange_basis( nods_coords_phys_space[k-1], m, nods_coords_phys_space[k][ 0] )
+                delta_minus[ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) *   k       + m ] += ( - 1 / 2 ) * basis.lagrange_basis( nods_coords_phys_space[k], n, nods_coords_phys_space[k][ 0] ) * basis.lagrange_basis( nods_coords_phys_space[k  ], m, nods_coords_phys_space[k][ 0] )
+    
+    delta_plus  = mass_matrix_inverse @ delta_plus
+    delta_minus = mass_matrix_inverse @ delta_minus
+
+    print(f'delta_plus  = \n{delta_plus}')
+    print(f'delta_minus = \n{delta_minus}')
+
+    term3_term3diff = np.zeros( ( inputs.N_elements * ( inputs.p_basis_order + 1 ) , inputs.N_elements * ( inputs.p_basis_order + 1 ) ) )
+    term3_term3diff_plus = np.zeros( ( inputs.N_elements * ( inputs.p_basis_order + 1 ) , inputs.N_elements * ( inputs.p_basis_order + 1 ) ) )
+    term3_term3diff_minu = np.zeros( ( inputs.N_elements * ( inputs.p_basis_order + 1 ) , inputs.N_elements * ( inputs.p_basis_order + 1 ) ) )
+
+    for k in e_numb[1:-1]:
+        for n in range(inputs.p_basis_order + 1):
+            for m in range(inputs.p_basis_order + 1):
+                term3_term3diff_plus[ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) *   k       + m ] += +inputs.v * basis.lagrange_basis( nods_coords_phys_space[k], n, nods_coords_phys_space[k][-1] ) * basis.lagrange_basis( nods_coords_phys_space[k  ], m, nods_coords_phys_space[k][-1] )
+                term3_term3diff_plus[ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) * ( k - 1 ) + m ] += -inputs.v * basis.lagrange_basis( nods_coords_phys_space[k], n, nods_coords_phys_space[k][ 0] ) * basis.lagrange_basis( nods_coords_phys_space[k-1], m, nods_coords_phys_space[k][ 0] )
+                term3_term3diff_minu[ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) * ( k + 1 ) + m ] += +inputs.v * basis.lagrange_basis( nods_coords_phys_space[k], n, nods_coords_phys_space[k][-1] ) * basis.lagrange_basis( nods_coords_phys_space[k+1], m, nods_coords_phys_space[k][-1] )
+                term3_term3diff_minu[ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) *   k       + m ] += -inputs.v * basis.lagrange_basis( nods_coords_phys_space[k], n, nods_coords_phys_space[k][ 0] ) * basis.lagrange_basis( nods_coords_phys_space[k  ], m, nods_coords_phys_space[k][ 0] )
+    
+    term3diff_matrix += term3_term3diff_plus @ delta_plus + term3_term3diff_minu @ delta_minus
+
+    # element at the right boundary
+
+    delta_plus   = np.zeros( ( inputs.N_elements * ( inputs.p_basis_order + 1 ) , inputs.N_elements * ( inputs.p_basis_order + 1 ) ) )
+    delta_minus  = np.zeros( ( inputs.N_elements * ( inputs.p_basis_order + 1 ) , inputs.N_elements * ( inputs.p_basis_order + 1 ) ) )
+    delta_plus_b = np.zeros( ( inputs.N_elements * ( inputs.p_basis_order + 1 ) , inputs.N_elements * ( inputs.p_basis_order + 1 ) ) )
+
+    k = e_numb[-1]
+
+    for n in range(inputs.p_basis_order + 1):
+        for m in range(inputs.p_basis_order + 1):
+            delta_plus   [ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) *   k       + m ] += (   1 / 2 ) * basis.lagrange_basis( nods_coords_phys_space[k], n, nods_coords_phys_space[k][-1] ) * basis.lagrange_basis( nods_coords_phys_space[k  ], m, nods_coords_phys_space[k][-1] )
+            delta_plus_b [ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) *   k       + m ] += ( - 1 / 2 ) * basis.lagrange_basis( nods_coords_phys_space[k], n, nods_coords_phys_space[k][-1] ) * basis.lagrange_basis( nods_coords_phys_space[k  ], m, nods_coords_phys_space[k][-1] )
+            delta_minus  [ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) * ( k - 1 ) + m ] += (   1 / 2 ) * basis.lagrange_basis( nods_coords_phys_space[k], n, nods_coords_phys_space[k][ 0] ) * basis.lagrange_basis( nods_coords_phys_space[k-1], m, nods_coords_phys_space[k][ 0] )
+            delta_minus  [ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) *   k       + m ] += ( - 1 / 2 ) * basis.lagrange_basis( nods_coords_phys_space[k], n, nods_coords_phys_space[k][ 0] ) * basis.lagrange_basis( nods_coords_phys_space[k  ], m, nods_coords_phys_space[k][ 0] )
+    
+    delta_plus    = mass_matrix_inverse @ delta_plus
+    delta_minus   = mass_matrix_inverse @ delta_minus
+    delta_plus_b = mass_matrix_inverse @ delta_plus_b
+
+    term3_term3diff_plus   = np.zeros( ( inputs.N_elements * ( inputs.p_basis_order + 1 ) , inputs.N_elements * ( inputs.p_basis_order + 1 ) ) )
+    term3_term3diff_minu_b = np.zeros( ( inputs.N_elements * ( inputs.p_basis_order + 1 ) , inputs.N_elements * ( inputs.p_basis_order + 1 ) ) )
+    term3_term3diff_minu   = np.zeros( ( inputs.N_elements * ( inputs.p_basis_order + 1 ) , inputs.N_elements * ( inputs.p_basis_order + 1 ) ) )
+
+    for n in range(inputs.p_basis_order + 1):
+        for m in range(inputs.p_basis_order + 1):
+            term3_term3diff_plus  [ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) *   k       + m ] += +inputs.v * basis.lagrange_basis( nods_coords_phys_space[k], n, nods_coords_phys_space[k][-1] ) * basis.lagrange_basis( nods_coords_phys_space[k  ], m, nods_coords_phys_space[k][-1] )
+            term3_term3diff_plus  [ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) * ( k - 1 ) + m ] += -inputs.v * basis.lagrange_basis( nods_coords_phys_space[k], n, nods_coords_phys_space[k][ 0] ) * basis.lagrange_basis( nods_coords_phys_space[k-1], m, nods_coords_phys_space[k][ 0] )
+            term3_term3diff_minu_b[ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) *   k       + m ] += +inputs.v * basis.lagrange_basis( nods_coords_phys_space[k], n, nods_coords_phys_space[k][-1] ) * basis.lagrange_basis( nods_coords_phys_space[k  ], m, nods_coords_phys_space[k][-1] )
+            term3_term3diff_minu  [ ( inputs.p_basis_order + 1 ) * k + n ][ ( inputs.p_basis_order + 1 ) *   k       + m ] += -inputs.v * basis.lagrange_basis( nods_coords_phys_space[k], n, nods_coords_phys_space[k][ 0] ) * basis.lagrange_basis( nods_coords_phys_space[k  ], m, nods_coords_phys_space[k][ 0] )
+    
+    term3diff_matrix += term3_term3diff_plus @ delta_plus + term3_term3diff_minu @ delta_minus
+    term3diff_vector += term3_term3diff_minu_b @ delta_plus_b @ state_rightboundary
+
+    ##################################################################
+    # solve
+
+    A_matrix = uwf_matrix - advection_matrix_1 + diffusion_matrix_1 + term2diff_matrix + term3diff_matrix + term3_term3diff
     b_vector = uwf_vector + term2diff_vector + term3diff_vector
-    print(f'b_vector = { -1 * b_vector}')
-
     s_mat_inv = np.linalg.inv(A_matrix)
-    print(f's_mat_inv = {s_mat_inv}')
-
     x = -1 * s_mat_inv @ b_vector
-    print(f'x = {x}')
 
-    return 1
+    return x
