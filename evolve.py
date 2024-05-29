@@ -2,7 +2,7 @@ import numpy as np
 import inputs
 import basis
 
-def compute_mass_matrix_1_inverse(elmnt_numb,element_lgth, gauss_weights, basis_values_at_gauss_quad):
+def compute_mass_matrix_inverse(elmnt_numb,element_lgth, gauss_weights, basis_values_at_gauss_quad):
 
     # number of basis or nodes in each element
     number_of_basis = len(basis_values_at_gauss_quad[0][0])
