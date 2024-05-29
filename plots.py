@@ -30,7 +30,7 @@ def plot(cg_solution, dg_solution, nodes_coordinates_phys_space, basis_values_at
     cg_solut = []
     for i in range(inputs.N_elements):
         cg_solut.append(list(cg_solution[ i * inputs.p_basis_order : i * inputs.p_basis_order + inputs.p_basis_order + 1]))
-        
+
     cg_quadrature = []
     dg_quadrature = []
     for i in range( inputs.N_elements ):
@@ -98,18 +98,18 @@ def plot(cg_solution, dg_solution, nodes_coordinates_phys_space, basis_values_at
     print(f'#Ne={inputs.N_elements}')
     print(f'#Pe={inputs.Pe}')
     print(f'#p={inputs.p_basis_order}')
-
-    print(f'cg_l2_error_{inputs.N_elements}_{inputs.p_basis_order}_{inputs.Pe} = {cg_l2_error}')
-    print(f'cg_weighted_error_{inputs.N_elements}_{inputs.p_basis_order}_{inputs.Pe} = {cg_weighted_error}')
-
-    print(f'dg_l2_error_{inputs.N_elements}_{inputs.p_basis_order}_{inputs.Pe} = {dg_l2_error}')
-    print(f'dg_weighted_error_{inputs.N_elements}_{inputs.p_basis_order}_{inputs.Pe} = {dg_weighted_error}')
     
-    print(f'cg_cords_{inputs.N_elements}_{inputs.p_basis_order}_{inputs.Pe} = {list(cg_cords)}')
-    print(f'cg_solution_{inputs.N_elements}_{inputs.p_basis_order}_{inputs.Pe} = {list(cg_solution)}')
-    
-    print(f'dg_cords_{inputs.N_elements}_{inputs.p_basis_order}_{inputs.Pe} = {dg_cords}')
-    print(f'dg_solut_{inputs.N_elements}_{inputs.p_basis_order}_{inputs.Pe} = {dg_solut}')
+    print(f'cg_l2_error_{inputs.N_elements}_{inputs.Pe}_{inputs.p_basis_order} = {cg_l2_error}')
+    print(f'cg_weighted_error_{inputs.N_elements}_{inputs.Pe}_{inputs.p_basis_order} = {cg_weighted_error}')
 
-    print(f'coords_exact_solution_{inputs.N_elements}_{inputs.p_basis_order}_{inputs.Pe} = {list(coords_exact_solution)}')
-    print(f'exact_solution_{inputs.N_elements}_{inputs.p_basis_order}_{inputs.Pe} = {list(exact_solution)}')
+    print(f'dg_l2_error_{inputs.N_elements}_{inputs.Pe}_{inputs.p_basis_order} = {dg_l2_error}')
+    print(f'dg_weighted_error_{inputs.N_elements}_{inputs.Pe}_{inputs.p_basis_order} = {dg_weighted_error}')
+    
+    print(f'cg_cords_{inputs.N_elements}_{inputs.Pe}_{inputs.p_basis_order} = {list(cg_cords)}')
+    print(f'cg_solution_{inputs.N_elements}_{inputs.Pe}_{inputs.p_basis_order} = {list(cg_solution)}')
+    
+    print(f'dg_cords_{inputs.N_elements}_{inputs.Pe}_{inputs.p_basis_order} = {dg_cords}')
+    print(f'dg_solut_{inputs.N_elements}_{inputs.Pe}_{inputs.p_basis_order} = {dg_solut}')
+
+    print(f'coords_exact_solution_{inputs.N_elements}_{inputs.Pe}_{inputs.p_basis_order} = {list(coords_exact_solution)}')
+    print(f'exact_solution_{inputs.N_elements}_{inputs.Pe}_{inputs.p_basis_order} = {list(exact_solution)}')
