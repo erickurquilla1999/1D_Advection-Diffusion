@@ -30,7 +30,7 @@ def plot(cg_solution, dg_solution, nodes_coordinates_phys_space, basis_values_at
     cg_solut = []
     for i in range(inputs.N_elements):
         cg_solut.append(list(cg_solution[ i * inputs.p_basis_order : i * inputs.p_basis_order + inputs.p_basis_order + 1]))
-
+        
     cg_quadrature = []
     dg_quadrature = []
     for i in range( inputs.N_elements ):
@@ -40,19 +40,23 @@ def plot(cg_solution, dg_solution, nodes_coordinates_phys_space, basis_values_at
     w = ( 1 - np.cos( np.pi * gauss_coords_phys_space / inputs.x_final) ) / 2
     es_quadrature = ( 1 - np.exp( inputs.a * gauss_coords_phys_space / inputs.v ) ) / ( 1 - np.exp( inputs.a / inputs.v ) )
 
-    # weighted error
-    cg_weighted_error = 0 
-    dg_weighted_error = 0 
-    for i in range( inputs.N_elements ):
-        cg_weighted_error += np.abs( 0.5 * np.sum( gauss_weights[i] * w[i] * ( cg_quadrature[i] - es_quadrature[i] ) ) )
-        dg_weighted_error += np.abs( 0.5 * np.sum( gauss_weights[i] * w[i] * ( dg_quadrature[i] - es_quadrature[i] ) ) )
+    cg_weighted_error = 0
+    dg_weighted_error = 0
+    cg_l2_error = 0
+    dg_l2_error = 0
 
-    # l2 error
-    cg_l2_error = 0 
-    dg_l2_error = 0 
     for i in range( inputs.N_elements ):
-        cg_l2_error += np.sqrt( 0.5 * np.sum( gauss_weights[i] * ( cg_quadrature[i] - es_quadrature[i] ) ** 2 ) )
-        dg_l2_error += np.sqrt( 0.5 * np.sum( gauss_weights[i] * ( dg_quadrature[i] - es_quadrature[i] ) ** 2 ) )
+        # weighted error
+        cg_weighted_error += ( 0.5 / inputs.N_elements ) * np.sum( gauss_weights[i] * w[i] * ( cg_quadrature[i] - es_quadrature[i] ) )
+        dg_weighted_error += ( 0.5 / inputs.N_elements ) * np.sum( gauss_weights[i] * w[i] * ( dg_quadrature[i] - es_quadrature[i] ) )
+        # l2 error
+        cg_l2_error += ( 0.5 / inputs.N_elements ) * np.sum( gauss_weights[i] * ( cg_quadrature[i] - es_quadrature[i] ) ** 2 )
+        dg_l2_error += ( 0.5 / inputs.N_elements ) * np.sum( gauss_weights[i] * ( dg_quadrature[i] - es_quadrature[i] ) ** 2 )
+
+    cg_weighted_error = np.abs (cg_weighted_error)
+    dg_weighted_error = np.abs (dg_weighted_error)
+    cg_l2_error       = np.sqrt(cg_l2_error)
+    dg_l2_error       = np.sqrt(dg_l2_error)
 
     ###############################################
     # Plot solution
@@ -92,12 +96,13 @@ def plot(cg_solution, dg_solution, nodes_coordinates_phys_space, basis_values_at
         dg_solut[i] = list(dg_solut[i])
 
     print(f'#Ne={inputs.N_elements}')
-    print(f'#p={inputs.p_basis_order}')
     print(f'#Pe={inputs.Pe}')
+    print(f'#p={inputs.p_basis_order}')
 
     print(f'cg_l2_error_{inputs.N_elements}_{inputs.p_basis_order}_{inputs.Pe} = {cg_l2_error}')
-    print(f'dg_l2_error_{inputs.N_elements}_{inputs.p_basis_order}_{inputs.Pe} = {dg_l2_error}')
     print(f'cg_weighted_error_{inputs.N_elements}_{inputs.p_basis_order}_{inputs.Pe} = {cg_weighted_error}')
+
+    print(f'dg_l2_error_{inputs.N_elements}_{inputs.p_basis_order}_{inputs.Pe} = {dg_l2_error}')
     print(f'dg_weighted_error_{inputs.N_elements}_{inputs.p_basis_order}_{inputs.Pe} = {dg_weighted_error}')
     
     print(f'cg_cords_{inputs.N_elements}_{inputs.p_basis_order}_{inputs.Pe} = {list(cg_cords)}')
